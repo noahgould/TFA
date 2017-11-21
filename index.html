@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>TFA Snake</title>
+  <style>
+    * { padding: 10; margin: 0;}
+    canvas {background: #eee; display: block; margin:0 auto; border:1px solid #000000}
+  </style>
+</head>
+<body>
+
+<canvas id="myCanvas" width="480" height ="480"></canvas>
+
+<script>
+  var canvas = document.getElementById("myCanvas");
+  var ctx = canvas.getContext("2d");
+  ctx.font = "30px Arial";
+  ctx.textAlign = 'center';
+  var snakePart = {
+    x: canvas.width /2,
+    y: canvas.height /2
+  };
+
+  var directions = {
+    right: 39,
+    left: 37,
+    up: 38,
+    down: 40
+  }
+
+  var snakeParts = [snakePart];
+  var appleX, appleY;
+  var snakeDirection = directions.right;
+  var snakePartSize = 15;
+  var appleEaten = false;
+  var appleRadius = 5;
+  var isGameOver = false;
+
+function initializeGame() {
+  snakePart.x = canvas.width /2;
+  snakePart.y = canvas.height /2;
+  appleEaten = false;
+  snakeParts = [snakePart];
+  appleInterval = setInterval(newApple, 10000);
+  drawInterval = setInterval(draw, 200);
+}
+
+newApple();
+draw();
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawSnake();
+    drawApple();
+  }
+
+  function drawSnake() {
+    var newHead = {
+      x: snakeParts[0].x,
+      y: snakeParts[0].y
+    };
+
+    if(!appleEaten) {
+      var oldTail = snakeParts.pop();
+      ctx.clearRect(oldTail.x, oldTail.y, snakePartSize, snakePartSize);
+    }
+    appleEaten = false;
+
+    switch(snakeDirection) {
+      case directions.right:
+        newHead.x += snakePartSize;
+        break;
+      case directions.left:
+        newHead.x -= snakePartSize;
+        break;
+      case directions.down:
+        newHead.y += snakePartSize;
+        break;
+      case directions.up:
+        newHead.y -= snakePartSize;
+        break;
+    }
+
+    snakeParts.unshift(newHead);
+
+    snakeParts.forEach(function(part, index, array) {
+      ctx.beginPath();
+      ctx.rect(part.x, part.y , snakePartSize, snakePartSize);
+      ctx.fillStyle = "green";
+      ctx.fill();
+      ctx.closePath();
+    });
+    checkCollision(newHead);
+  }
+
+  function checkBodyCollision(snakeHead) {
+    for(i = 1; i < snakeParts.length; i++)  {
+      if(snakeHead.x == snakeParts[i].x && snakeHead.y == snakeParts[i].y) {
+          return true;
+        }
+    }
+    return false;
+  }
+
+  function checkWallCollision(snakeHead) {
+    if(snakeHead.x == 0 || snakeHead.y == 0 || snakeHead.x == canvas.width || snakeHead.y == canvas.height) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  function checkAppleCollision(snakeHead) {
+    if(Math.abs(snakeHead.x - appleX) < snakePartSize  && Math.abs(snakeHead.y - appleY) < snakePartSize) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  //EDIT THIS function
+  //check for collisions
+  function checkCollision( snakeHead ) {
+    //Check for body collison
+    // call check body collision with parameter snakeHead.
+    if ( checkBodyCollision(snakeHead) ) {
+      gameOver();
+    }
+
+    //check for wall collison
+    // call checkWallCollision with parameter snakeHead in an if statement.
+    if ( checkWallCollision(snakeHead) ) {
+      gameOver();
+    }
+
+    //check if the apple was eaten.
+    //call checkAppleCollision() with parmeter snakeHead.
+    //if true call eatApple()
+    if ( checkAppleCollision(snakeHead) ) {
+      eatApple()
+    }
+
+  }
+
+  function gameOver() {
+    isGameOver = true;
+    clearInterval(appleInterval);
+    clearInterval(drawInterval);
+    ctx.fillText("Game Over.", canvas.width / 2, canvas.height / 2 - 50)
+    ctx.fillText("Press any button to start again.", canvas.width / 2, canvas.height / 2 + 50)
+
+  }
+
+  function eatApple() {
+    appleEaten = true;
+    newApple();
+  }
+
+  function newApple() {
+    appleX = Math.random() * canvas.width;
+    appleY = Math.random() * canvas.height;
+  }
+
+  function drawApple() {
+    ctx.beginPath();
+    ctx.arc(appleX, appleY, appleRadius, 0, Math.PI*2, false);
+    ctx.fillStyle = "red";
+    ctx.fill();
+    ctx.closePath();
+  }
+
+document.addEventListener("keydown", keyDownHandler, false);
+
+function keyDownHandler(e) {
+  if(!isGameOver) {
+    var newDirection;
+
+    if(e.keyCode == 37 || e.keyCode == 38 || e.keyCode == 39 || e.keyCode == 40) {
+      newDirection = e.keyCode;
+    }
+
+    if(newDirection == directions.left && snakeDirection == directions.right) {
+      newDirection = directions.right;
+    } else if (newDirection == directions.right && snakeDirection == directions.left) {
+      newDirection = directions.left;
+    } else if (newDirection == directions.up && snakeDirection == directions.down) {
+      newDirection = directions.down;
+    } else if (newDirection == directions.down && snakeDirection == directions.up) {
+      newDirection = directions.up;
+    }
+
+    if(newDirection != snakeDirection) {
+      snakeDirection = newDirection;
+      drawSnake();
+    }
+  } else {
+    isGameOver = false;
+    initializeGame();
+    newApple();
+    draw();
+    snakeDirection = directions.right;
+  }
+}
+
+var appleInterval = setInterval(newApple, 10000);
+var drawInterval = setInterval(draw, 200);
+</script>
+
+</body>
+</html>
